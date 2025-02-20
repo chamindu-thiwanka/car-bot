@@ -2,6 +2,10 @@ from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
+from google.oauth2.service_account import Credentials
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
@@ -10,9 +14,18 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1u30X8HFuRqWhPYK2ox3I5uU4ixg
 SHEET_NAME = "Sheet2"  # Change this if your sheet name is different
 
 # Authenticate and open Google Sheet
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("ikmanscrapertosheets-ac0ef1141680.json", scope)
+
+load_dotenv()  # Load environment variables
+
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+if not GOOGLE_CREDENTIALS_JSON:
+    raise ValueError("❌ GOOGLE_APPLICATION_CREDENTIALS_JSON is not set!")
+
+creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
+
 sheet = client.open_by_url(SHEET_URL).worksheet(SHEET_NAME)
 
 # List of allowed phone numbers (Include full international format: e.g., +94712345678)
