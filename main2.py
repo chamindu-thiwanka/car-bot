@@ -11,7 +11,7 @@ SHEET_NAME = "Sheet2"  # Change this if your sheet name is different
 
 # Authenticate and open Google Sheet
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("ikmanscrapertosheets-e987f101b56c.json", scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name("ikmanscrapertosheets-ac0ef1141680.json", scope)
 client = gspread.authorize(creds)
 sheet = client.open_by_url(SHEET_URL).worksheet(SHEET_NAME)
 
