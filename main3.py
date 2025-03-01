@@ -94,6 +94,12 @@ def bot():
             row for row in records if user_msg in row[0].strip().lower()
         ]
 
+        # Sort matched records by "Date Fixed" (column index 6, 0-based index)
+        try:
+            matched_records.sort(key=lambda x: datetime.strptime(x[6], "%Y-%m-%d"), reverse=True)
+        except Exception as e:
+            print(f"⚠️ Error sorting by Date Fixed: {e}")
+
         # Prepare response
         if matched_records:
             msg_body = "🔍 *Search Results:*\n\n"
