@@ -103,6 +103,7 @@ def bot():
                     f"💰 Price: {record[1]}\n"
                     f"📍 Location: {record[2]}\n"
                     f"📏 Mileage: {record[3]}\n"
+                    f"📆 Fixed Date: {record[6]}\n"
                     f"🔗 [Listing]({record[4]})\n\n"
                 )
         else:
