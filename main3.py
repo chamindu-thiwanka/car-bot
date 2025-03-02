@@ -95,7 +95,7 @@ def bot():
         ]
 
         # Function to split long messages into chunks
-        def split_message(message, limit=1600):
+        def split_message(message, limit=1500):
             chunks = []
             while len(message) > limit:
                 # Find a safe split point (end of a record)
