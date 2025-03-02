@@ -89,10 +89,24 @@ def bot():
         headers = data[0]  # First row as headers
         records = data[1:]  # Rest of the rows as records
 
-        # Search for matching words in the title (column 0)
+        # # Search for matching words in the title (column 0)
+        # matched_records = [
+        #     row for row in records if user_msg in row[0].strip().lower()
+        # ]
+
+        # Normalize user query
+        user_msg_clean = user_msg.strip().lower()
+
+        # Search for matching words using regex to ensure accurate matching
         matched_records = [
-            row for row in records if user_msg in row[0].strip().lower()
+            row for row in data 
+            if re.search(rf"\b{re.escape(user_msg_clean)}\b", row[0].strip().lower().replace('\xa0', ' '), re.IGNORECASE)
         ]
+        
+        # Debugging logs
+        print(f"🔍 Searching for: '{user_msg_clean}' - Matched: {len(matched_records)} records")
+
+
 
         # Function to split long messages into chunks
         def split_message(message, limit=1500):
@@ -125,7 +139,7 @@ def bot():
             for chunk in message_chunks:
                 response.message(chunk)
         else:
-            response.message(f"❌ No records found for '{user_msg}'. Please try another search.")
+            response.message(f"❌ No records found for '{user_msg_clean}'. Please try another search.")
 
 
     
