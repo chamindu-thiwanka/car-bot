@@ -6,8 +6,6 @@ import json
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
-import re
-
 
 app = Flask(__name__)
 
@@ -95,7 +93,6 @@ def bot():
         matched_records = [
             row for row in records if user_msg in row[0].strip().lower()
         ]
-
 
         # Function to split long messages into chunks
         def split_message(message, limit=1500):
