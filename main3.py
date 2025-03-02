@@ -6,26 +6,11 @@ import json
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
-import re
-
 
 app = Flask(__name__)
 
 # Load environment variables
 load_dotenv()
-
-# Get credentials from the .env file
-# google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
-# print("hello",google_creds_json)
-# # Validate the credentials JSON
-# if not google_creds_json:
-#     raise ValueError("❌ Missing GOOGLE_SHEETS_CREDENTIALS in .env file!")
-
-# # Convert the string back to a dictionary
-# try:
-#     creds_dict = json.loads(google_creds_json)
-# except json.JSONDecodeError:
-#     raise ValueError("❌ GOOGLE_SHEETS_CREDENTIALS is not a valid JSON!")
 
 def create_keyfile_dict():
     variables_keys = {
@@ -42,11 +27,11 @@ def create_keyfile_dict():
         "universe_domain": os.getenv("UNIVERSE_DOMAIN")
     }
     return variables_keys
-print(create_keyfile_dict)
+
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 try:
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(create_keyfile_dict(),scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(create_keyfile_dict(), scope)
     client = gspread.authorize(creds)
 except Exception as e:
     raise ValueError(f"❌ Google Sheets Authentication Failed: {e}")
@@ -66,13 +51,14 @@ BLOCKED_NUMBERS = {"whatsapp:+94760000000"}
 
 @app.route("/", methods=["POST"])
 def bot():
-    user_msg = request.values.get('Body', '').strip().lower()
+    user_input = request.values.get('Body', '').strip()
+    user_msg = user_input.lower()  # Convert to lowercase for case-insensitive search
     sender_number = request.values.get('From', '').strip()  # Get sender's WhatsApp number
 
     # Log the incoming request details in the terminal
     print(f"📩 Incoming WhatsApp message:")
     print(f"   - From: {sender_number}")
-    print(f"   - Message: {user_msg}")
+    print(f"   - Message: {user_input} (Normalized: {user_msg})")
 
     response = MessagingResponse()
 
@@ -91,24 +77,10 @@ def bot():
         headers = data[0]  # First row as headers
         records = data[1:]  # Rest of the rows as records
 
-        # # Search for matching words in the title (column 0)
-        # matched_records = [
-        #     row for row in records if user_msg in row[0].strip().lower()
-        # ]
-
-        # Normalize user query
-        user_msg_clean = user_msg.strip().lower()
-
-        # Search for matching words using regex to ensure accurate matching
+        # Search for matching words in the title (column 0) - case insensitive
         matched_records = [
-            row for row in data 
-            if re.search(rf"\b{re.escape(user_msg_clean)}\b", row[0].strip().lower().replace('\xa0', ' '), re.IGNORECASE)
+            row for row in records if user_msg in row[0].strip().lower()
         ]
-        
-        # Debugging logs
-        print(f"🔍 Searching for: '{user_msg_clean}' - Matched: {len(matched_records)} records")
-
-
 
         # Function to split long messages into chunks
         def split_message(message, limit=1500):
@@ -125,7 +97,7 @@ def bot():
         
         # Prepare response
         if matched_records:
-            msg_body = "🔍 *Search Results:*\n\n"
+            msg_body = f"🔍 *Search Results for '{user_input}':*\n\n"
             for record in matched_records[:20]:  # Adjust the number of records as needed
                 msg_body += (
                     f"🚗 *{record[0]}*\n"
@@ -138,32 +110,16 @@ def bot():
         
             # Split and send messages in chunks
             message_chunks = split_message(msg_body)
-            for chunk in message_chunks:
+            for i, chunk in enumerate(message_chunks):
+                # If there are multiple chunks, add indicators
+                if len(message_chunks) > 1:
+                    chunk = f"{chunk}\n[Part {i+1}/{len(message_chunks)}]"
                 response.message(chunk)
         else:
-            response.message(f"❌ No records found for '{user_msg_clean}'. Please try another search.")
+            response.message(f"❌ No records found for '{user_input}'. Please try another search.")
 
-
-    
-
-        # # Prepare response
-        # if matched_records:
-        #     msg_body = "🔍 *Search Results:*\n\n"
-        #     for record in matched_records[:7]:  # Limit to 5 results for readability
-        #         msg_body += (
-        #             f"🚗 *{record[0]}*\n"
-        #             f"💰 Price: {record[1]}\n"
-        #             f"📍 Location: {record[2]}\n"
-        #             f"📏 Mileage: {record[3]}\n"
-        #             f"📆 Ad Created Date: {record[6]}\n"
-        #             f"🔗 [Listing]({record[4]})\n\n"
-        #         )
-        # else:
-        #     msg_body = f"❌ No records found for '{user_msg}'. Please try another search."
-
-        response.message(msg_body)
-    
     except Exception as e:
+        print(f"Error processing request: {e}")
         response.message(f"⚠️ An error occurred: {str(e)}")
 
     return str(response)
