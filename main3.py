@@ -110,7 +110,7 @@ def bot():
         # Prepare response
         if matched_records:
             msg_body = "🔍 *Search Results:*\n\n"
-            for record in matched_records[:11]:  # Adjust the number of records as needed
+            for record in matched_records[:20]:  # Adjust the number of records as needed
                 msg_body += (
                     f"🚗 *{record[0]}*\n"
                     f"💰 Price: {record[1]}\n"
