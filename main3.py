@@ -61,8 +61,8 @@ except Exception as e:
     raise ValueError(f"❌ Error accessing Google Sheet: {e}")
 
 # Allowed and blocked WhatsApp numbers (use full international format)
-ALLOWED_NUMBERS = {"whatsapp:+94763243006", "whatsapp:+9476787859500"}
-BLOCKED_NUMBERS = {"whatsapp:+94760000000"}
+ALLOWED_NUMBERS = {"whatsapp:+94763243006"}
+BLOCKED_NUMBERS = {"whatsapp:+94760000000", "whatsapp:+94767878595"}
 
 @app.route("/", methods=["POST"])
 def bot():
