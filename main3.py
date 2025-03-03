@@ -6,6 +6,8 @@ import json
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
+import re
+
 
 app = Flask(__name__)
 
@@ -94,10 +96,24 @@ def bot():
             row for row in records if user_msg in row[0].strip().lower()
         ]
 
+
+        # Function to split long messages into chunks
+        def split_message(message, limit=1500):
+            chunks = []
+            while len(message) > limit:
+                # Find a safe split point (end of a record)
+                split_index = message.rfind('\n\n', 0, limit)
+                if split_index == -1:  # Fallback if no split point is found
+                    split_index = limit
+                chunks.append(message[:split_index])
+                message = message[split_index:].strip()
+            chunks.append(message)
+            return chunks
+        
         # Prepare response
         if matched_records:
             msg_body = "🔍 *Search Results:*\n\n"
-            for record in matched_records[:10]:  # Limit to 5 results for readability
+            for record in matched_records[:20]:  # Adjust the number of records as needed
                 msg_body += (
                     f"🚗 *{record[0]}*\n"
                     f"💰 Price: {record[1]}\n"
@@ -106,8 +122,31 @@ def bot():
                     f"📆 Ad Created Date: {record[6]}\n"
                     f"🔗 [Listing]({record[4]})\n\n"
                 )
+        
+            # Split and send messages in chunks
+            message_chunks = split_message(msg_body)
+            for chunk in message_chunks:
+                response.message(chunk)
         else:
-            msg_body = f"❌ No records found for '{user_msg}'. Please try another search."
+            response.message(f"❌ No records found for '{user_msg}'. Please try another search.")
+
+
+    
+
+        # # Prepare response
+        # if matched_records:
+        #     msg_body = "🔍 *Search Results:*\n\n"
+        #     for record in matched_records[:7]:  # Limit to 5 results for readability
+        #         msg_body += (
+        #             f"🚗 *{record[0]}*\n"
+        #             f"💰 Price: {record[1]}\n"
+        #             f"📍 Location: {record[2]}\n"
+        #             f"📏 Mileage: {record[3]}\n"
+        #             f"📆 Ad Created Date: {record[6]}\n"
+        #             f"🔗 [Listing]({record[4]})\n\n"
+        #         )
+        # else:
+        #     msg_body = f"❌ No records found for '{user_msg}'. Please try another search."
 
         response.message(msg_body)
     
