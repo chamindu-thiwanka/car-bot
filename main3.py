@@ -151,7 +151,7 @@ def bot():
         response.message(msg_body)
     
     except Exception as e:
-        response.message(f"⚠️ An error occurred: {str(e)}")
+        response.message(f"⚠️ Search Term is not associated with a value.")
 
     return str(response)
 
